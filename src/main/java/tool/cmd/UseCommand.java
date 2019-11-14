@@ -26,7 +26,6 @@ import java.util.List;
 
 /**
  * This class represents the "Update" command and it holds arguments and flags specified by the user.
- *
  */
 @CommandLine.Command(name = "use", description = "Use Ballerina distribution")
 public class UseCommand extends Command implements BLauncherCommand {

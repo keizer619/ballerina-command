@@ -19,15 +19,18 @@ package tool.cmd;
 import picocli.CommandLine;
 import tool.BLauncherCommand;
 import tool.BallerinaCliCommands;
+import tool.util.Distribution;
 import tool.util.ToolUtil;
 
+import java.io.File;
+import java.io.IOException;
 import java.io.PrintStream;
+import java.security.KeyManagementException;
+import java.security.NoSuchAlgorithmException;
 import java.util.List;
 
 /**
  * This class represents the "Update" command and it holds arguments and flags specified by the user.
- *
- * @since 1.0
  */
 @CommandLine.Command(name = "list", description = "List Ballerina Distributions")
 public class ListCommand extends Command implements BLauncherCommand {
@@ -54,7 +57,7 @@ public class ListCommand extends Command implements BLauncherCommand {
         }
 
         if (listCommands == null) {
-            ToolUtil.listDistributions(getPrintStream(), localFlag);
+            listDistributions(getPrintStream(), localFlag);
             return;
         } else if (listCommands.size() > 1) {
             //  throw LauncherUtils.createUsageExceptionWithHelp("too many arguments given");
@@ -84,5 +87,52 @@ public class ListCommand extends Command implements BLauncherCommand {
     @Override
     public void setParentCmdParser(CommandLine parentCmdParser) {
         this.parentCmdParser = parentCmdParser;
+    }
+
+    /**
+     * List distributions in the local and remote.
+     * @param outStream stream outputs need to be printed
+     * @param isLocal option to list distributions only in the local
+     */
+    public static void listDistributions(PrintStream outStream, boolean isLocal) {
+        try {
+            outStream.println("Distributions available locally: \n");
+            String currentBallerinaVersion = ToolUtil.getCurrentBallerinaVersion();
+            File folder = new File(ToolUtil.getDistributionsPath());
+            File[] listOfFiles;
+            listOfFiles = folder.listFiles();
+            for (int i = 0; i < listOfFiles.length; i++) {
+                if (listOfFiles[i].isDirectory()) {
+                    outStream.println(markVersion(ToolUtil.BALLERINA_TYPE + "-" + currentBallerinaVersion,
+                            listOfFiles[i].getName()));
+                }
+            }
+            outStream.println();
+
+            if (!isLocal) {
+                outStream.println("Distributions available remotely: \n");
+                for (Distribution distribution : ToolUtil.getDistributions()) {
+                    outStream.println(markVersion(ToolUtil.BALLERINA_TYPE + "-" + currentBallerinaVersion,
+                            distribution.getVersion() + "-" + distribution.getVersion()));
+                }
+                outStream.println();
+            }
+        } catch (IOException | KeyManagementException | NoSuchAlgorithmException e) {
+            outStream.println("Ballerina Update service is not available");
+        }
+    }
+
+    /**
+     * Checks used Ballerina version and mark the output.
+     * @param used Used Ballerina version
+     * @param current Version needs to be checked
+     * @return Marked output
+     */
+    private static String markVersion(String used, String current) {
+        if (used.equals(current)) {
+            return "* " + current;
+        } else {
+            return "  " + current;
+        }
     }
 }

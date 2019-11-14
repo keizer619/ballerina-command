@@ -17,8 +17,13 @@
 package tool;
 
 import picocli.CommandLine;
-import tool.cmd.*;
-import tool.util.ToolUtil;
+import tool.cmd.DefaultCommand;
+import tool.cmd.DistributionCommand;
+import tool.cmd.ListCommand;
+import tool.cmd.PullCommand;
+import tool.cmd.RemoveCommand;
+import tool.cmd.UpdateCommand;
+import tool.cmd.UseCommand;
 
 import java.io.PrintStream;
 import java.util.List;
@@ -26,8 +31,6 @@ import java.util.Optional;
 
 /**
  * This class executes a Ballerina program.
- *
- * @since 0.8.0
  */
 public class Main {
 

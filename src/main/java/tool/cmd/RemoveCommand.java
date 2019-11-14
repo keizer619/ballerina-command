@@ -26,7 +26,6 @@ import java.util.List;
 
 /**
  * This class represents the "Remove" command and it holds arguments and flags specified by the user.
- *
  */
 @CommandLine.Command(name = "remove", description = "Remove Ballerina distribution")
 public class RemoveCommand extends Command implements BLauncherCommand {
@@ -52,7 +51,7 @@ public class RemoveCommand extends Command implements BLauncherCommand {
         if (removeCommands == null) {
             //    throw LauncherUtils.createUsageExceptionWithHelp("distribution is not provided");
         } else if (removeCommands.size() == 1) {
-            ToolUtil.remove(getPrintStream(), removeCommands.get(0));
+            remove(getPrintStream(), removeCommands.get(0));
             return;
         } else if (removeCommands.size() > 1) {
             //    throw LauncherUtils.createUsageExceptionWithHelp("too many arguments given");
@@ -82,5 +81,36 @@ public class RemoveCommand extends Command implements BLauncherCommand {
     @Override
     public void setParentCmdParser(CommandLine parentCmdParser) {
         this.parentCmdParser = parentCmdParser;
+    }
+
+    public static void remove(PrintStream printStream, String version) {
+        printStream.println("Removing" + version);
+//        boolean isCurrentVersion = false;
+//        try {
+//            isCurrentVersion = version.equals(getCurrentBallerinaVersion());
+//        } catch (IOException e) {
+//            outStream.println("There is no default version for current user");
+//        }
+//
+//        try {
+//            if (isCurrentVersion) {
+//                outStream.println("You cannot remove default Ballerina version");
+//            } else {
+//                File directory = new File(getDistributionsPath() + File.separator + version);
+//                if (directory.exists()) {
+//                    if (directory.canWrite()) {
+//                        deleteFiles(directory.toPath(), outStream, version);
+//                        outStream.println(version + " deleted successfully");
+//                    } else {
+//                        outStream.println("Current user does not have write permissions to "
+//                                + directory.toPath() + " directory");
+//                    }
+//                } else {
+//                    outStream.println(version + " does not exist");
+//                }
+//            }
+//        } catch (IOException e) {
+//            outStream.println("Error occurred while removing");
+//        }
     }
 }

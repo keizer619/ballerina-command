@@ -39,8 +39,8 @@ import java.util.zip.ZipInputStream;
  * Ballerina tool utilities.
  */
 public class ToolUtil {
-    private static final String PRODUCTION_URL = "https://api.central.ballerina.io/1.0/update-tool";
-    private static final String BALLERINA_TYPE = "jballerina";
+    public static final String PRODUCTION_URL = "https://api.central.ballerina.io/1.0/update-tool";
+    public static final String BALLERINA_TYPE = "jballerina";
     private static final String BALLERINA_TOOL_NAME = "ballerina";
 
     private static TrustManager[] trustAllCerts = new TrustManager[]{
@@ -58,45 +58,10 @@ public class ToolUtil {
     };
 
     /**
-     * List distributions in the local and remote.
-     * @param outStream stream outputs need to be printed
-     * @param isLocal option to list distributions only in the local
-     */
-    public static void listDistributions(PrintStream outStream, boolean isLocal) {
-//        try {
-//            outStream.println("Distributions available locally: \n");
-//            String currentBallerinaVersion = getCurrentBallerinaVersion();
-//            File folder = new File(getDistributionsPath());
-//            File[] listOfFiles;
-//            listOfFiles = folder.listFiles();
-//            for (int i = 0; i < listOfFiles.length; i++) {
-//                if (listOfFiles[i].isDirectory()) {
-//                    outStream.println(markVersion(BALLERINA_TYPE + "-" + currentBallerinaVersion,
-//                            listOfFiles[i].getName()));
-//                }
-//            }
-//            outStream.println();
-//
-//            if (!isLocal) {
-//                outStream.println("Distributions available remotely: \n");
-//                MapValue distributions = getDistributions();
-//                for (int i = 0; i < distributions.getArrayValue("list").size(); i++) {
-//                    MapValue dist = (MapValue) distributions.getArrayValue("list").get(i);
-//                    outStream.println(markVersion(BALLERINA_TYPE + "-" + currentBallerinaVersion,
-//                            dist.getStringValue("type") + "-" + dist.getStringValue("version")));
-//                }
-//                outStream.println();
-//            }
-//        } catch (IOException | KeyManagementException | NoSuchAlgorithmException e) {
-//            outStream.println("Ballerina Update service is not available");
-//        }
-    }
-
-    /**
      * Provides used Ballerina version.
      * @return Used Ballerina version
      */
-    private static String getCurrentBallerinaVersion() throws IOException {
+    public static String getCurrentBallerinaVersion() throws IOException {
         return getVersion(OSUtils.getBallerinaVersionFilePath());
     }
 
@@ -138,20 +103,6 @@ public class ToolUtil {
         writer.close();
     }
 
-    /**
-     * Checks used Ballerina version and mark the output.
-     * @param used Used Ballerina version
-     * @param current Version needs to be checked
-     * @return Marked output
-     */
-    private static String markVersion(String used, String current) {
-        if (used.equals(current)) {
-            return "* " + current;
-        } else {
-            return "  " + current;
-        }
-    }
-
     public static boolean use(PrintStream printStream, String distribution) {
         try {
             File installFile = new File(getDistributionsPath() + File.separator + distribution);
@@ -171,37 +122,6 @@ public class ToolUtil {
         }
 
         return false;
-    }
-
-    public static void install(PrintStream printStream, String distribution, boolean manualUpdate) {
-        try {
-            if (!use(printStream, distribution)) {
-                SSLContext sc = SSLContext.getInstance("SSL");
-                sc.init(null, trustAllCerts, new java.security.SecureRandom());
-                HttpsURLConnection.setDefaultSSLSocketFactory(sc.getSocketFactory());
-
-                String distributionType = distribution.split("-")[0];
-                String distributionVersion = distribution.replace(distributionType + "-", "");
-                URL url = new URL(PRODUCTION_URL + "/distributions/" + distributionVersion);
-                HttpURLConnection conn = (HttpURLConnection) url.openConnection();
-                conn.setRequestMethod("GET");
-                conn.setRequestProperty("user-agent",
-                        OSUtils.getUserAgent(distributionVersion, getCurrentToolsVersion(), distributionType));
-                conn.setRequestProperty("Accept", "application/json");
-                if (conn.getResponseCode() == 302) {
-                    String newUrl = conn.getHeaderField("Location");
-                    conn = (HttpURLConnection) new URL(newUrl).openConnection();
-                    conn.setRequestProperty("content-type", "binary/data");
-                    download(printStream, conn, distribution, manualUpdate);
-                } else if (conn.getResponseCode() == 200) {
-                    download(printStream, conn, distribution, manualUpdate);
-                } else {
-                    printStream.println(distribution + " is not found ");
-                }
-            }
-        } catch (IOException | KeyManagementException | NoSuchAlgorithmException e) {
-            printStream.println("Cannot connect to the central server");
-        }
     }
 
     public static void download(PrintStream printStream, HttpURLConnection conn,
@@ -239,57 +159,6 @@ public class ToolUtil {
         }
     }
 
-    public static void update(PrintStream printStream) {
-        try {
-            String version = getCurrentBallerinaVersion();
-            List<String> versions = new ArrayList<>();
-            for (Distribution distribution : getDistributions()) {
-                versions.add(distribution.getVersion());
-            }
-            Version currentVersion = new Version(version);
-            String latestVersion = currentVersion.getLatest(versions.stream().toArray(String[]::new));
-            if (!latestVersion.equals(version)) {
-                String distribution = BALLERINA_TYPE + "-" + latestVersion;
-                install(printStream, distribution, false);
-                use(printStream, distribution);
-            } else {
-                printStream.println("No update found");
-            }
-        } catch (IOException | KeyManagementException | NoSuchAlgorithmException e) {
-            printStream.println("Cannot connect to the central server");
-        }
-    }
-
-    public static void remove(PrintStream outStream, String version) {
-        boolean isCurrentVersion = false;
-        try {
-            isCurrentVersion = version.equals(getCurrentBallerinaVersion());
-        } catch (IOException e) {
-            outStream.println("There is no default version for current user");
-        }
-
-        try {
-            if (isCurrentVersion) {
-                outStream.println("You cannot remove default Ballerina version");
-            } else {
-                File directory = new File(getDistributionsPath() + File.separator + version);
-                if (directory.exists()) {
-                    if (directory.canWrite()) {
-                        deleteFiles(directory.toPath(), outStream, version);
-                        outStream.println(version + " deleted successfully");
-                    } else {
-                        outStream.println("Current user does not have write permissions to "
-                                + directory.toPath() + " directory");
-                    }
-                } else {
-                    outStream.println(version + " does not exist");
-                }
-            }
-        } catch (IOException e) {
-            outStream.println("Error occurred while removing");
-        }
-    }
-
     /**
      * Delete files inside directories.
      *
@@ -313,7 +182,7 @@ public class ToolUtil {
                 });
     }
 
-    private static List<Distribution> getDistributions() throws IOException, KeyManagementException, NoSuchAlgorithmException {
+    public static List<Distribution> getDistributions() throws IOException, KeyManagementException, NoSuchAlgorithmException {
 
         SSLContext sc = SSLContext.getInstance("SSL");
         sc.init(null, trustAllCerts, new java.security.SecureRandom());
@@ -382,8 +251,7 @@ public class ToolUtil {
      * @throws IOException happens version file cannot be read
      */
     public static String getDistributionsPath() throws IOException {
-        return OSUtils.getInstalltionPath() + File.separator
-                + BALLERINA_TOOL_NAME + "-" + getCurrentToolsVersion() + File.separator + "distributions";
+        return OSUtils.getInstalltionPath() + File.separator + "distributions";
     }
 
     /**
@@ -417,6 +285,37 @@ public class ToolUtil {
             }
         } catch (Exception e) {
             // If any exception occurs we are not letting users know as check for update is optional
+        }
+    }
+
+    public static void pull(PrintStream printStream, String distribution, boolean manualUpdate) {
+        try {
+            if (!ToolUtil.use(printStream, distribution)) {
+                SSLContext sc = SSLContext.getInstance("SSL");
+                sc.init(null, trustAllCerts, new java.security.SecureRandom());
+                HttpsURLConnection.setDefaultSSLSocketFactory(sc.getSocketFactory());
+
+                String distributionType = distribution.split("-")[0];
+                String distributionVersion = distribution.replace(distributionType + "-", "");
+                URL url = new URL(ToolUtil.PRODUCTION_URL + "/distributions/" + distributionVersion);
+                HttpURLConnection conn = (HttpURLConnection) url.openConnection();
+                conn.setRequestMethod("GET");
+                conn.setRequestProperty("user-agent",
+                        OSUtils.getUserAgent(distributionVersion, ToolUtil.getCurrentToolsVersion(), distributionType));
+                conn.setRequestProperty("Accept", "application/json");
+                if (conn.getResponseCode() == 302) {
+                    String newUrl = conn.getHeaderField("Location");
+                    conn = (HttpURLConnection) new URL(newUrl).openConnection();
+                    conn.setRequestProperty("content-type", "binary/data");
+                    ToolUtil.download(printStream, conn, distribution, manualUpdate);
+                } else if (conn.getResponseCode() == 200) {
+                    ToolUtil.download(printStream, conn, distribution, manualUpdate);
+                } else {
+                    printStream.println(distribution + " is not found ");
+                }
+            }
+        } catch (IOException | KeyManagementException | NoSuchAlgorithmException e) {
+            printStream.println("Cannot connect to the central server");
         }
     }
 }

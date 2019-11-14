@@ -19,15 +19,22 @@ package tool.cmd;
 import picocli.CommandLine;
 import tool.BLauncherCommand;
 import tool.BallerinaCliCommands;
+import tool.util.OSUtils;
 import tool.util.ToolUtil;
 
+import javax.net.ssl.HttpsURLConnection;
+import javax.net.ssl.SSLContext;
+import javax.tools.Tool;
+import java.io.IOException;
 import java.io.PrintStream;
+import java.net.HttpURLConnection;
+import java.net.URL;
+import java.security.KeyManagementException;
+import java.security.NoSuchAlgorithmException;
 import java.util.List;
 
 /**
  * This class represents the "Update" command and it holds arguments and flags specified by the user.
- *
- * @since 1.0
  */
 @CommandLine.Command(name = "pull", description = "Pull Ballerina distribution")
 public class PullCommand extends Command implements BLauncherCommand {
@@ -54,7 +61,7 @@ public class PullCommand extends Command implements BLauncherCommand {
         if (pullCommands == null) {
             //    throw LauncherUtils.createUsageExceptionWithHelp("distribution is not provided");
         } else if (pullCommands.size() == 1) {
-            ToolUtil.install(getPrintStream(), pullCommands.get(0), true);
+            ToolUtil.pull(getPrintStream(), pullCommands.get(0), true);
             return;
         } else if (pullCommands.size() > 1) {
             //    throw LauncherUtils.createUsageExceptionWithHelp("too many arguments given");

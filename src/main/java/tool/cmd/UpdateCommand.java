@@ -19,13 +19,11 @@ package tool.cmd;
 import picocli.CommandLine;
 import tool.BLauncherCommand;
 import tool.BallerinaCliCommands;
-import tool.util.ToolUtil;
 
 import java.io.PrintStream;
 import java.util.List;
 /**
  * This class represents the "Update" command and it holds arguments and flags specified by the user.
- *
  */
 @CommandLine.Command(name = "update", description = "Update Ballerina current distribution")
 public class UpdateCommand extends Command implements BLauncherCommand {
@@ -49,7 +47,7 @@ public class UpdateCommand extends Command implements BLauncherCommand {
         }
 
         if (updateCommands == null) {
-            ToolUtil.update(getPrintStream());
+            update(getPrintStream());
             return;
         } else if (updateCommands.size() > 1) {
             //     throw LauncherUtils.createUsageExceptionWithHelp("too many arguments given");
@@ -79,5 +77,27 @@ public class UpdateCommand extends Command implements BLauncherCommand {
     @Override
     public void setParentCmdParser(CommandLine parentCmdParser) {
         this.parentCmdParser = parentCmdParser;
+    }
+
+    public static void update(PrintStream printStream) {
+        printStream.println("Updating...");
+//        try {
+//            String version = getCurrentBallerinaVersion();
+//            List<String> versions = new ArrayList<>();
+//            for (Distribution distribution : getDistributions()) {
+//                versions.add(distribution.getVersion());
+//            }
+//            Version currentVersion = new Version(version);
+//            String latestVersion = currentVersion.getLatest(versions.stream().toArray(String[]::new));
+//            if (!latestVersion.equals(version)) {
+//                String distribution = BALLERINA_TYPE + "-" + latestVersion;
+//                install(printStream, distribution, false);
+//                use(printStream, distribution);
+//            } else {
+//                printStream.println("No update found");
+//            }
+//        } catch (IOException | KeyManagementException | NoSuchAlgorithmException e) {
+//            printStream.println("Cannot connect to the central server");
+//        }
     }
 }
